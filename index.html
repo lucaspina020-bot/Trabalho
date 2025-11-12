@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portfólio — Lucas Pina</title>
+  <!-- Tailwind Play CDN (para projetos sem build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Portfólio pessoal — Lucas Pina. Habilidades, formação, projetos e contato." />
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 leading-relaxed">
+  <header class="bg-white shadow-sm sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold">Lucas Pina</h1>
+        <p class="text-sm text-slate-500">Estudante • Desenvolvedor iniciante • Curioso por tecnologia</p>
+      </div>
+
+      <nav aria-label="Menu principal">
+        <ul class="flex gap-4 text-sm">
+          <li><a href="#sobre" class="hover:underline">Sobre</a></li>
+          <li><a href="#habilidades" class="hover:underline">Habilidades</a></li>
+          <li><a href="#formacao" class="hover:underline">Formação</a></li>
+          <li><a href="#projetos" class="hover:underline">Projetos</a></li>
+          <li><a href="#contato" class="hover:underline">Contato</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 py-10">
+    <!-- Hero / apresentação -->
+    <section id="hero" class="grid gap-8 md:grid-cols-2 md:items-center mb-12">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-bold">Olá — eu sou Lucas Pina</h2>
+        <p class="mt-4 text-slate-600">Estudante do Instituto Federal de Nova Andradina. Gosto de resolver problemas com código, aprender novas ferramentas e construir projetos práticos que ajudem a entender conceitos.</p>
+
+        <ul class="mt-6 flex gap-3">
+          <li><a href="#projetos" class="inline-block px-4 py-2 border rounded-lg text-sm font-medium hover:bg-slate-100">Ver projetos</a></li>
+          <li><a href="#contato" class="inline-block px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:opacity-90">Contato</a></li>
+        </ul>
+      </div>
+
+      <figure class="mx-auto w-48 h-48 md:w-56 md:h-56 rounded-xl overflow-hidden ring-2 ring-slate-100">
+        <!-- Substitua o src pelo caminho da sua foto (local) ou URL hospedada -->
+        <img src="https://placehold.co/600x600/ffffff/000000?text=Foto" alt="Foto de Lucas Pina" class="w-full h-full object-cover" />
+      </figure>
+    </section>
+
+    <!-- Sobre mim -->
+    <section id="sobre" class="mb-10">
+      <h3 class="text-2xl font-semibold">Sobre mim</h3>
+      <p class="mt-3 text-slate-600">Sou estudante e estou construindo conhecimentos em programação (principalmente HTML, CSS/Tailwind e fundamentos de lógica). Gosto de aprender com projetos práticos e colaborar com colegas em trabalhos e desafios escolares.</p>
+    </section>
+
+    <!-- Habilidades -->
+    <section id="habilidades" class="mb-10">
+      <h3 class="text-2xl font-semibold">Habilidades</h3>
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium">Técnicas</h4>
+          <ul class="mt-2 text-sm text-slate-600 list-disc list-inside">
+            <li>HTML semântico</li>
+            <li>Tailwind CSS (layout responsivo)</li>
+            <li>Noções de Git e GitHub</li>
+            <li>Conceitos básicos de JavaScript (leitura) — não usado aqui</li>
+          </ul>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium">Pessoais</h4>
+          <ul class="mt-2 text-sm text-slate-600 list-disc list-inside">
+            <li>Comunicação</li>
+            <li>Organização</li>
+            <li>Aprendizado contínuo</li>
+          </ul>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium">Ferramentas</h4>
+          <ul class="mt-2 text-sm text-slate-600 list-disc list-inside">
+            <li>VS Code</li>
+            <li>Git / GitHub</li>
+            <li>Terminal básico</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formação e experiências -->
+    <section id="formacao" class="mb-10">
+      <h3 class="text-2xl font-semibold">Formação & Experiências</h3>
+      <div class="mt-4 space-y-4">
+        <article class="bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium">Instituto Federal de Nova Andradina</h4>
+          <p class="text-sm text-slate-600">Aluno - Cursos e atividades relacionadas a matemática, ciências e desenvolvimento web (início em 2024).</p>
+        </article>
+
+        <article class="bg-white p-4 rounded-lg shadow-sm">
+          <h4 class="font-medium">Projetos escolares</h4>
+          <p class="text-sm text-slate-600">Desenvolvi pequenos sites e exercícios em HTML/Tailwind para trabalhos e apresentações.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Projetos -->
+    <section id="projetos" class="mb-10">
+      <h3 class="text-2xl font-semibold">Projetos</h3>
+      <div class="mt-4 grid gap-6 md:grid-cols-2">
+        <article class="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          <h4 class="text-lg font-semibold">Projeto 1 — Site do Exemplo</h4>
+          <p class="mt-2 text-sm text-slate-600">Um site simples em HTML e Tailwind que demonstra layout responsivo, uso de componentes semânticos e um pequeno portfólio de imagens. <a href="#" class="text-sky-600 hover:underline">Ver no GitHub</a></p>
+        </article>
+
+        <article class="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          <h4 class="text-lg font-semibold">Projeto 2 — Mini-jogo de lógica (documentado)</h4>
+          <p class="mt-2 text-sm text-slate-600">Projeto escrito em pseudocódigo e HTML para explicar a lógica de um jogo escolar. Contém diagrama e instruções. <a href="#" class="text-sky-600 hover:underline">Ver no GitHub</a></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Contato -->
+    <section id="contato" class="mb-16">
+      <h3 class="text-2xl font-semibold">Contato</h3>
+      <p class="mt-3 text-slate-600">Fale comigo por e-mail ou veja meus perfis profissionais:</p>
+
+      <ul class="mt-4 space-y-2 text-sm">
+        <li>Email: <a href="mailto:seu.email@exemplo.com" class="text-sky-600 hover:underline">seu.email@exemplo.com</a></li>
+        <li>GitHub: <a href="https://github.com/seu-usuario" class="text-sky-600 hover:underline">github.com/seu-usuario</a></li>
+        <li>LinkedIn: <a href="https://www.linkedin.com/in/seu-perfil" class="text-sky-600 hover:underline">linkedin.com/in/seu-perfil</a></li>
+      </ul>
+    </section>
+
+    <footer class="py-6 border-t text-center text-sm text-slate-500">
+      <p>© <span id="ano">2025</span> Lucas Pina — Portfólio criado com HTML &amp; Tailwind (sem JavaScript)</p>
+    </footer>
+  </main>
+
+</body>
+</html>
