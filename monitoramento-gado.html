@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monitoramento de Gado — Fazenda IFMS Nova Andradina</title>
+
+  <!-- Chart.js (v4) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <meta name="description" content="Projeto de monitoramento de gado com sensores — IFMS Nova Andradina" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --bg:#f3f6f8; --card:#ffffff; --muted:#6b7280; --accent:#2e5939;
+    --ok:#16a34a; --warn:#d97706; --danger:#ef4444;
+  }
+
+  html, body {
+    width: 100%;
+    overflow-x: hidden; /* 🚫 impede rolagem lateral */
+  }
+
+  body {
+    font-family: Inter, Arial, sans-serif;
+    background:var(--bg);
+    color:#0f172a;
+    line-height:1.5;
+    padding-bottom:40px;
+  }
+
+  .container {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin: 18px 0;
+    flex-wrap: wrap;
+  }
+
+  .brand { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+  .logo {
+    width:56px; height:56px; border-radius:10px;
+    background:linear-gradient(135deg,#2e5939,#5aa86f);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:18px;
+  }
+
+  .controls { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+
+  .btn {
+    background:#111827; color:white; border:none;
+    border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:600;
+  }
+  .btn.secondary { background:white; color:#111827; border:1px solid rgba(0,0,0,0.08); }
+
+  .card {
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    box-shadow:0 6px 22px rgba(15,23,42,0.06);
+    margin-bottom:16px;
+    width: 100%;
+  }
+
+  .card h2 { color:var(--accent); margin-bottom:8px; }
+  .muted { color:var(--muted); font-size:14px; }
+
+  /* 🔧 Grid ajustado */
+  .grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+
+  .form-row {
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px;
+  }
+  .form-row label {
+    display:flex; gap:6px; align-items:center; color:var(--muted); font-size:14px;
+  }
+  .form-row input {
+    width:100px; padding:8px; border-radius:8px; border:1px solid #d1d5db;
+  }
+
+  .indicators {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:12px;
+    margin-top:14px;
+  }
+
+  .indicator {
+    background:linear-gradient(180deg,#fff,#f6f8fa);
+    border-radius:10px;
+    padding:12px;
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+
+  .indicator h3 { margin:0 0 6px 0; font-size:13px; color:#0f172a; }
+  .value { font-weight:700; font-size:20px; }
+  canvas.inline-chart { width:100%; height:48px; }
+
+  .alert { font-weight:700; font-size:13px; padding:6px 8px; border-radius:8px; }
+  .alert.ok { color:#065f46; background:#ecfdf5; }
+  .alert.warn { color:#92400e; background:#fff7ed; }
+  .alert.danger { color:#7f1d1d; background:#fff1f2; }
+
+  #map {
+    width: 100%;
+    height: 360px;
+    border-radius:10px;
+    margin-top:10px;
+    border:1px solid rgba(0,0,0,0.06);
+  }
+
+  footer {
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-top:18px;
+  }
+
+  /* 🌙 Modo escuro */
+  body.dark {
+    background:#071018; color:#dbeafe;
+  }
+  body.dark .card {
+    background:#071827; box-shadow:0 8px 30px rgba(2,6,23,0.6);
+  }
+  body.dark .muted { color:#93c5fd; }
+</style>
+
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">IFMS</div>
+        <div>
+          <h1>Monitoramento de Gado — Fazenda IFMS Nova Andradina</h1>
+          <div class="muted">Sensores: água, temperatura, umidade e GPS — projeto de integração tecnológica</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="simulaBtn" class="btn secondary" aria-pressed="false">▶ Simular dados</button>
+        <button id="darkBtn" class="btn" aria-pressed="false">🌙 Modo Escuro</button>
+      </div>
+    </header>
+
+    <!-- Introdução -->
+    <section class="card" id="introducao">
+      <h2>Sobre o Projeto</h2>
+      <p class="muted">
+        O <strong>projeto de Monitoramento de Gado</strong> aproxima o produtor rural das tecnologias, facilitando o manejo
+        e melhorando o controle do rebanho. O sistema é construído com placas Arduino e sensores que coletam dados em campo,
+        oferecendo informações úteis ao produtor para decisões mais eficientes.
+      </p>
+      <ul class="muted" style="margin-top:10px; margin-left:18px;">
+        <li><strong>GPS</strong> — localização do gado.</li>
+        <li><strong>Sensor de temperatura</strong> — temperatura da água e do animal.</li>
+        <li><strong>Sensor de presença</strong> — tempo no curral / comportamento.</li>
+      </ul>
+    </section>
+
+    <main class="grid">
+      <!-- Painel -->
+      <section>
+        <div class="card" aria-labelledby="dash-title">
+          <h2 id="dash-title">Painel de Monitoramento</h2>
+          <p class="muted">Insira valores manuais ou ative a simulação para ver os gráficos e alertas.</p>
+
+          <div class="form-row" role="group" aria-label="Entradas de sensores">
+            <label for="inputAgua">Água (L):
+              <input id="inputAgua" type="number" step="0.1" placeholder="45.0">
+            </label>
+            <label for="inputTempAgua">Temp. Água (°C):
+              <input id="inputTempAgua" type="number" step="0.1" placeholder="22.5">
+            </label>
+            <label for="inputTempAr">Temp. Ar (°C):
+              <input id="inputTempAr" type="number" step="0.1" placeholder="26.0">
+            </label>
+            <label for="inputUmidade">Umidade (%):
+              <input id="inputUmidade" type="number" step="0.1" placeholder="55">
+            </label>
+            <button id="atualizarBtn" class="btn secondary">Atualizar</button>
+          </div>
+
+          <div class="indicators" id="indicators">
+            <div class="indicator">
+              <div>
+                <h3>Consumo de Água (L)</h3>
+                <div id="valorAgua" class="value">0.0</div>
+              </div>
+              <canvas id="chartAgua" class="inline-chart"></canvas>
+            </div>
+
+            <div class="indicator">
+              <div>
+                <h3>Temp. Água (°C)</h3>
+                <div id="valorTempAgua" class="value">0.0</div>
+              </div>
+              <canvas id="chartTempAgua" class="inline-chart"></canvas>
+            </div>
+
+            <div class="indicator">
+              <div>
+                <h3>Temp. Ar (°C)</h3>
+                <div id="valorTempAr" class="value">0.0</div>
+              </div>
+              <canvas id="chartTempAr" class="inline-chart"></canvas>
+            </div>
+
+            <div class="indicator">
+              <div>
+                <h3>Umidade (%)</h3>
+                <div id="valorUmidade" class="value">0.0</div>
+              </div>
+              <canvas id="chartUmidade" class="inline-chart"></canvas>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <div id="alertAgua" class="alert ok" role="status">—</div>
+            <div id="alertTempAgua" class="alert ok" role="status">—</div>
+            <div id="alertTempAr" class="alert ok" role="status">—</div>
+            <div id="alertUmidade" class="alert ok" role="status">—</div>
+          </div>
+        </div>
+
+        <div class="card" id="resumoDados">
+          <h2>Resumo</h2>
+          <p class="muted">Última atualização: <span id="ultimaAtualizacao">—</span></p>
+          <div style="margin-top:8px; display:flex; gap:12px; flex-wrap:wrap;">
+            <div class="muted small">Média Água (últ. 10): <strong id="mediaAgua">—</strong></div>
+            <div class="muted small">Média Temp Água: <strong id="mediaTempAgua">—</strong></div>
+            <div class="muted small">Média Temp Ar: <strong id="mediaTempAr">—</strong></div>
+            <div class="muted small">Média Umidade: <strong id="mediaUmidade">—</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mapa -->
+      <aside>
+        <div class="card">
+          <h2>Mapa — Fazenda Santa Bárbara</h2>
+          <p class="muted">Posições simuladas do rebanho</p>
+          <div id="map" aria-label="Mapa com marcadores do gado"></div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <p>© 2025 — Projeto Monitoramento de Gado • IFMS Nova Andradina</p>
+    </footer>
+  </div>
+
+  <script>
+    // --- referencias DOM seguras
+    const inputAgua = document.getElementById('inputAgua');
+    const inputTempAgua = document.getElementById('inputTempAgua');
+    const inputTempAr = document.getElementById('inputTempAr');
+    const inputUmidade = document.getElementById('inputUmidade');
+    const atualizarBtn = document.getElementById('atualizarBtn');
+    const simulaBtn = document.getElementById('simulaBtn');
+    const darkBtn = document.getElementById('darkBtn');
+
+    const valorAguaEl = document.getElementById('valorAgua');
+    const valorTempAguaEl = document.getElementById('valorTempAgua');
+    const valorTempArEl = document.getElementById('valorTempAr');
+    const valorUmidadeEl = document.getElementById('valorUmidade');
+
+    const alertAguaEl = document.getElementById('alertAgua');
+    const alertTempAguaEl = document.getElementById('alertTempAgua');
+    const alertTempArEl = document.getElementById('alertTempAr');
+    const alertUmidadeEl = document.getElementById('alertUmidade');
+
+    const ultimaAtualizacaoEl = document.getElementById('ultimaAtualizacao');
+    const mediaAguaEl = document.getElementById('mediaAgua');
+    const mediaTempAguaEl = document.getElementById('mediaTempAgua');
+    const mediaTempArEl = document.getElementById('mediaTempAr');
+    const mediaUmidadeEl = document.getElementById('mediaUmidade');
+
+    // --- dados e histórico
+    const LIMIT = 10;
+    const labels = [];
+    const history = { agua: [], tempAgua: [], tempAr: [], umidade: [] };
+
+    function horaAtual() {
+      return new Date().toLocaleTimeString('pt-BR', { hour12: false });
+    }
+
+    function pushAndLimit(arr, value) {
+      arr.push(value);
+      if (arr.length > LIMIT) arr.shift();
+    }
+
+    // --- criar gráficos
+    function criarGrafico(canvasId, color) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      return new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: color, backgroundColor: color + '33', fill: true, tension: 0.35, pointRadius: 0 }] },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { beginAtZero: true } },
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    const chartAgua = criarGrafico('chartAgua', '#2563eb');
+    const chartTempAgua = criarGrafico('chartTempAgua', '#ef4444');
+    const chartTempAr = criarGrafico('chartTempAr', '#f97316');
+    const chartUmidade = criarGrafico('chartUmidade', '#10b981');
+
+    // --- atualiza UI e gráficos
+    function atualizarTudo(agua, tempAgua, tempAr, umidade) {
+      // guardando historico
+      pushAndLimit(history.agua, agua);
+      pushAndLimit(history.tempAgua, tempAgua);
+      pushAndLimit(history.tempAr, tempAr);
+      pushAndLimit(history.umidade, umidade);
+
+      // labels
+      labels.push(horaAtual());
+      if (labels.length > LIMIT) labels.shift();
+
+      // atualizar charts (copiando arrays)
+      function atualiza(chart, arr) {
+        chart.data.labels = labels.slice();
+        chart.data.datasets[0].data = arr.slice();
+        chart.update();
+      }
+      atualiza(chartAgua, history.agua);
+      atualiza(chartTempAgua, history.tempAgua);
+      atualiza(chartTempAr, history.tempAr);
+      atualiza(chartUmidade, history.umidade);
+
+      // UI valores
+      valorAguaEl.textContent = agua.toFixed(1);
+      valorTempAguaEl.textContent = tempAgua.toFixed(1);
+      valorTempArEl.textContent = tempAr.toFixed(1);
+      valorUmidadeEl.textContent = umidade.toFixed(1);
+      ultimaAtualizacaoEl.textContent = horaAtual();
+
+      // medias
+      const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : '—';
+      mediaAguaEl.textContent = avg(history.agua);
+      mediaTempAguaEl.textContent = avg(history.tempAgua);
+      mediaTempArEl.textContent = avg(history.tempAr);
+      mediaUmidadeEl.textContent = avg(history.umidade);
+
+      // alertas com limites (ajustáveis)
+      setAlerta(alertAguaEl, agua, 42, 48, 'L');
+      setAlerta(alertTempAguaEl, tempAgua, 21, 24, '°C');
+      setAlerta(alertTempArEl, tempAr, 25, 27, '°C');
+      setAlerta(alertUmidadeEl, umidade, 52, 58, '%');
+    }
+
+    function setAlerta(el, valor, min, max, unidade) {
+      el.className = 'alert';
+      if (valor < min) { el.classList.add('warn'); el.textContent = `⚠ Abaixo do ideal (${valor}${unidade})`; }
+      else if (valor > max) { el.classList.add('danger'); el.textContent = `⚠ Acima do ideal (${valor}${unidade})`; }
+      else { el.classList.add('ok'); el.textContent = `✅ Normal (${valor}${unidade})`; }
+    }
+
+    // --- eventos
+    atualizarBtn.addEventListener('click', () => {
+      const a = parseFloat(inputAgua.value) || 0;
+      const ta = parseFloat(inputTempAgua.value) || 0;
+      const tar = parseFloat(inputTempAr.value) || 0;
+      const u = parseFloat(inputUmidade.value) || 0;
+      atualizarTudo(a, ta, tar, u);
+    });
+
+    // simulação
+    let simInterval = null;
+    simulaBtn.addEventListener('click', () => {
+      const pressed = simulaBtn.getAttribute('aria-pressed') === 'true';
+      simulaBtn.setAttribute('aria-pressed', (!pressed).toString());
+      if (!pressed) {
+        simulaBtn.textContent = '⏸️ Parar simulação';
+        simInterval = setInterval(() => {
+          const a = +(42 + Math.random()*6).toFixed(1);
+          const ta = +(21 + Math.random()*4).toFixed(1);
+          const tar = +(24 + Math.random()*4).toFixed(1);
+          const u = +(50 + Math.random()*10).toFixed(1);
+          atualizarTudo(a, ta, tar, u);
+        }, 3000);
+      } else {
+        simulaBtn.textContent = '▶ Simular dados';
+        clearInterval(simInterval);
+      }
+    });
+
+    // dark mode
+    darkBtn.addEventListener('click', () => {
+      const pressed = darkBtn.getAttribute('aria-pressed') === 'true';
+      darkBtn.setAttribute('aria-pressed', (!pressed).toString());
+      document.body.classList.toggle('dark');
+      darkBtn.textContent = document.body.classList.contains('dark') ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+    });
+
+    // --- mapa (Leaflet)
+    const center = [-22.0795, -53.4693];
+    const map = L.map('map', { scrollWheelZoom: false }).setView(center, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+
+    // ícone (usa URL pública de ícone — se quiser, substitua por sua imagem)
+    const boiIcon = L.icon({
+      iconUrl: 'https://img.freepik.com/psd-premium/vaca-isolada-em-fundo-transparente-png-psd_699917-1382.jpg',
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -36]
+    });
+
+    const animais = [
+      { id: 'Boi 1', lat: -22.07942037398842, lng: -53.469404363005225 },
+      { id: 'Boi 2', lat: -22.079098602472218, lng: -53.46725408538992 },
+      { id: 'Boi 3', lat: -22.08048028331483, lng: -53.46933206217556 }
+    ];
+
+    const markers = animais.map(a => L.marker([a.lat, a.lng], { icon: boiIcon }).addTo(map).bindPopup(a.id));
+
+    // movimenta levemente
+    setInterval(() => {
+      markers.forEach(m => {
+        const p = m.getLatLng();
+        const newLat = p.lat + (Math.random() - 0.5) / 5000;
+        const newLng = p.lng + (Math.random() - 0.5) / 5000;
+        m.setLatLng([newLat, newLng]);
+      });
+    }, 4000);
+
+    // ajustar zoom aos marcadores ao carregar
+    window.addEventListener('load', () => {
+      try {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.4));
+      } catch (e) { /* no-op */ }
+    });
+
+    // iniciar com valores padrão
+    atualizarTudo(45.0, 22.5, 26.0, 55.0);
+  </script>
+</body>
+</html>
